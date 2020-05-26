@@ -2,6 +2,7 @@
 library(shiny)
 library(maps)
 library(mapproj)
+library(dplyr)
 
 # Load data ----
 counties <- read.csv('HS.csv',stringsAsFactors = FALSE)
@@ -25,7 +26,7 @@ ui <- fluidPage(
       
       sliderInput("range", 
                   label = "Range of interest:",
-                  min =93.8, max = 1028, value = c(93.8, 1028))
+                  min =0, max = 100, value = c(0, 100))
     ),
     
     mainPanel(plotOutput("map"))
@@ -39,7 +40,7 @@ server <- function(input, output) {
                    "Heart & Stroke" =counties$Value )
     
     color <- switch(input$var, 
-                    "Heart & Stroke" = "darkorange")
+                    "Heart & Stroke" = "darkviolet")
     
     legend <- switch(input$var, 
                      "Heart & Stroke" = "HS data")
