@@ -11,3 +11,7 @@ HS.df <- mutate(HS.df,'state_full'=state.name[HS.df$State])
 
 HS.df <- mutate(HS.df,
                 'state.county' = paste0(HS.df$state_full,',',HS.df$County))
+HS.df<-select(HS.df,"state.county",'Value')
+
+write.csv(HS.df,
+          '/home/pim01001/Documents/Bootcamp/R/Shiny_test/inequality/HS.csv')
