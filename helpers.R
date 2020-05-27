@@ -7,15 +7,14 @@ percent_map <- function(var, color, legend.title, min = 0, max = 100) {
   shades <- colorRampPalette(c("white", color))(100)
   
   # constrain gradient to percents that occur between min and max
-  #var <- pmax(var, min)
-  #var <- pmin(var, max)
-  min1 <- min(var)
-  max1 <- max(var)
+  var <- pmax(var, min)
+  var <- pmin(var, max)
   
-  percents <- as.integer(cut(var, 100, 
-    include.lowest = TRUE, ordered = TRUE))
+  
+  percents <- table(cut(var, 100, include.lowest = TRUE, ordered = TRUE))
   fills <- shades[percents]
-
+  #min <- min(percents,na.rm = TRUE)
+  #max <- max(percents,na.rm = TRUE)
   # plot choropleth map
   map("county", fill = TRUE, col = fills, 
     resolution = 0, lty = 0, projection = "polyconic", 
@@ -27,15 +26,16 @@ percent_map <- function(var, color, legend.title, min = 0, max = 100) {
     myborder = 0, mar = c(0,0,0,0))
   
   # add a legend
-  inc <- (max1 - min1) / 4
-  legend.text <- c(paste0(min1, " % or less"),
-    paste0(min1 + inc, " %"),
-    paste0(min1 + 2 * inc, " %"),
-    paste0(min1 + 3 * inc, " %"),
-    paste0(max1, " % or more"))
+  inc <- (max - min) / 4
+  legend.text <- c(paste0(min, " % or less"),
+    paste0(min + inc, " %"),
+    paste0(min + 2 * inc, " %"),
+    paste0(min + 3 * inc, " %"),
+    paste0(max, " % or more"))
   
   legend("bottomleft", 
     legend = legend.text, 
     fill = shades[c(1, 25, 50, 75, 100)], 
     title = legend.title)
 }
+

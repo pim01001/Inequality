@@ -6,7 +6,7 @@ library(dplyr)
 
 # Load data ----
 counties <- read.csv('HS.csv',stringsAsFactors = FALSE)
-counties <- select(counties,'state.county','Value')
+counties <- select(counties,'name','Value')
 # Source helper functions -----
 source("helpers.R")
 
@@ -26,7 +26,8 @@ ui <- fluidPage(
       
       sliderInput("range", 
                   label = "Range of interest:",
-                  min =0, max = 100, value = c(0, 100))
+                  min =min(counties$Value,na.rm=TRUE), max =max(counties$Value,na.rm=TRUE), 
+                  value = c(0, 100))
     ),
     
     mainPanel(plotOutput("map"))
@@ -35,9 +36,9 @@ ui <- fluidPage(
 
 # Server logic ----
 server <- function(input, output) {
-  output$map <- renderPlot({
+   output$map <- renderPlot({
     data <- switch(input$var, 
-                   "Heart & Stroke" =counties$Value )
+                   "Heart & Stroke"=counties$Value )
     
     color <- switch(input$var, 
                     "Heart & Stroke" = "darkviolet")

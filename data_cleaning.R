@@ -24,21 +24,28 @@ ll.df<-select(ll.df,name,Value)
 write.csv(ll.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/HS.csv')
 
 
-percent_map <- function(var, color, legend.title, min = 0, max = 100) {
-  
+#percent_map <- function(var, color, legend.title, min = 0, max = 100) {
+  var <- ll.df$Value
+  color <- 'darkviolet'
+  legend.title <-"HS data"
   # generate vector of fill colors for map
   shades <- colorRampPalette(c("white", color))(100)
   
   # constrain gradient to percents that occur between min and max
-  #var <- pmax(var, min)
-  #var <- pmin(var, max)
+  min=500
+  max=800
+  var <- pmax(var, min)
+  var <- pmin(var, max)
+  # 
   
-  
-  percents <- as.integer(cut(var, 100, 
+  percents <- table(cut(var, 100, 
                              include.lowest = TRUE, ordered = TRUE))
   fills <- shades[percents]
   #min <- min(percents,na.rm = TRUE)
   #max <- max(percents,na.rm = TRUE)
+  
+
+  par(mar=c(1,1,1,1))
   # plot choropleth map
   map("county", fill = TRUE, col = fills, 
       resolution = 0, lty = 0, projection = "polyconic", 
@@ -61,9 +68,9 @@ percent_map <- function(var, color, legend.title, min = 0, max = 100) {
          legend = legend.text, 
          fill = shades[c(1, 25, 50, 75, 100)], 
          title = legend.title)
-}
 
-percent_map(ll.df$Value, 'darkviolet', "HS data", min = 25, max = 100)
+
+#percent_map(ll.df$Value, 'darkviolet', "HS data", min = 0, max = 100)
 
 
 
