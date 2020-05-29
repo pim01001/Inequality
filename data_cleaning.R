@@ -14,7 +14,7 @@ HS.df <- mutate(HS.df,
 HS.df<-select(HS.df,"name",'Value')
 
 HS.df$name <- tolower(HS.df$name)
-
+# tt is being using to order that data in certain way so map function works
 tt.df <- read.csv('/home/pim01001/Documents/Bootcamp/R/Shiny_test/test1/data/data.csv',stringsAsFactors = FALSE)
 
 ll.df<-left_join(tt.df,HS.df,by='name')
@@ -23,7 +23,25 @@ ll.df<-select(ll.df,name,Value)
 
 write.csv(ll.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/HS.csv')
 
+#----------------------------------------------------
 
+#reads only the header
+income.header <-read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/PovertyEstimates.csv',
+                        skip=4,nrow=1,header = FALSE,stringsAsFactors = FALSE)
+
+income.df<-read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/PovertyEstimates.csv',
+                    skip=5,header = FALSE,stringsAsFactors = FALSE)
+colnames(income.df)<-income.header
+
+#convert income AL into Alabama
+income.df<-mutate(income.df,'state.full'=state.name[income.df$Stabr])
+#getting rid of County after each county name
+income.df$Area_name<-gsub(' County','',income.df$Area_name)
+income.df <- mutate(income.df,
+                'name' = tolower(paste0(income.df$state.full,',',income.df$Area_name)))
+income.df <-left_join(ll.df,income.df,by='name')
+income.df <- select(income.df,-Value)
+#------test of map function-------------------------------
 #percent_map <- function(var, color, legend.title, min = 0, max = 100) {
   var <- ll.df$Value
   color <- 'darkviolet'
