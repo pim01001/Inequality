@@ -5,8 +5,12 @@ library(dplyr)
 library(ggplot2)
 
 # Load data ----
-counties <- read.csv('comb.csv',stringsAsFactors = FALSE)
+comb.df <- read.csv('comb.csv',stringsAsFactors = FALSE)
 
+comb.df <- comb.df %>% group_by(state,county) %>% 
+  summarise(Long = median(longitude),Lat= median(latitude),
+            HS_county = median(Value,na.rm=TRUE),
+            Poverty = median(PCTPOVALL_2018))
 
 
 # User interface ----
@@ -20,12 +24,12 @@ ui <- fluidPage(
       
       selectInput("var", 
                   label = "Choose a variable to display",
-                  choices = c('Heart & Stroke'),
+                  choices = c('Heart & Stroke','Income'),
                   selected = 'Heart & Stroke'),
       
       sliderInput("range", 
                   label = "Range of interest:",
-                  min =min(counties$Value,na.rm=TRUE), max =max(counties$Value,na.rm=TRUE), 
+                  min =min(comb.df$Value,na.rm=TRUE), max =max(comb.df$Value,na.rm=TRUE), 
                   value = c(0, 100))
     ),
     
@@ -46,15 +50,24 @@ server <- function(input, output) {
   
   
   output$map <- renderLeaflet({
-    HS.df <- comb.df %>% group_by(state,county) %>% 
-      summarise(Long = median(longitude),Lat= median(latitude),
-                HS_county = median(Value,na.rm=TRUE))  
     
-    leaflet(HS.df) %>% addTiles() %>%
-      addCircles(lng = ~Long, lat = ~Lat, weight = 2,
-                 radius = ~HS_county^1.5, 
-                 popup = ~paste(county,',',state,':',HS_county))
+    data.df <- switch(input$var, 
+                   "Heart & Stroke"=leaflet(comb.df) %>% addTiles() %>%
+                     addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+                                radius = ~HS_county^1.5, 
+                                popup = ~paste(county,',',state,':',HS_county)),
+                   'Income'= leaflet(comb.df) %>% addTiles() %>%
+                     addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+                                radius = ~Poverty^3, 
+                                popup = ~paste(county,',',state,':',Poverty)))
+   
+  
     
+    # leaflet(comb.df) %>% addTiles() %>%
+    #   addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+    #              radius = data.df^3, 
+    #              popup = ~paste(county,',',state,':',HS_county))
+    # 
   })
   
   # density plot q

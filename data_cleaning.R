@@ -62,6 +62,7 @@ income.df$Area_name<-gsub(' County','',income.df$Area_name)
 #income.df$name<- state_count(income.df$Stabr,income.df$Area_name)
 
 income.df<-income.df %>% rename(.,county=Area_name,state=Stabr)
+income.df$POVALL_2018[is.na(income.df$POVALL_2018)] <- 0
 final.df <-left_join(HS.df,income.df,by=c('state','county'))
 
 write.csv(final.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/comb.csv')
