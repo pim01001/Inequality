@@ -3,6 +3,7 @@ library(dplyr)
 
 pop.df <- read.csv('/home/pim01001/Documents/Bootcamp/R/Shiny_test/geo.csv')
 HS.df <- read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/HS.csv')
+comb.df<-read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/comb.csv')
 
 
 # m <- leaflet() %>% addTiles() %>% addMarkers(lng=174.768,lat=-36.852,
@@ -21,14 +22,14 @@ m<-leaflet(pop2.df) %>% addTiles() %>%
 print(m)
 
 #------------------------------------------------------------------
-HS.df <- HS.df %>% group_by(state,county) %>% 
+HS.df <- comb.df %>% group_by(state,county) %>% 
   summarise(Long = median(longitude),Lat= median(latitude),
             HS_county = median(Value,na.rm=TRUE))
 
 u<-leaflet(HS.df) %>% addTiles() %>%
-  addCircles(lng = ~Long, lat = ~Lat, weight = 1,
-             radius = ~exp(HS_county*.011) , 
-             popup = ~paste(county,':',HS_county))
+  addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+             radius = ~HS_county^1.5, 
+             popup = ~paste(county,',',state,':',HS_county))
 
 print(u)
 

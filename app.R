@@ -1,15 +1,13 @@
 # Load packages ----
 library(shiny)
-library(maps)
-library(mapproj)
+library(leaflet)
 library(dplyr)
 library(ggplot2)
 
 # Load data ----
-counties <- read.csv('HS.csv',stringsAsFactors = FALSE)
-counties <- select(counties,'name','Value')
-# Source helper functions -----
-source("helpers.R")
+counties <- read.csv('comb.csv',stringsAsFactors = FALSE)
+
+
 
 # User interface ----
 ui <- fluidPage(
@@ -34,7 +32,7 @@ ui <- fluidPage(
     mainPanel(
       
       tabsetPanel(type = "tabs",
-                  tabPanel("Map", plotOutput("map")),
+                  tabPanel("Map",leafletOutput("map")),
                   tabPanel("Density Plot", plotOutput("density")),
                   tabPanel("Table", tableOutput("table"))
         )
@@ -45,17 +43,18 @@ ui <- fluidPage(
 
 # Server logic ----
 server <- function(input, output) {
-  output$map <- renderPlot({
-    data <- switch(input$var, 
-                   "Heart & Stroke"=counties$Value )
+  
+  
+  output$map <- renderLeaflet({
+    HS.df <- comb.df %>% group_by(state,county) %>% 
+      summarise(Long = median(longitude),Lat= median(latitude),
+                HS_county = median(Value,na.rm=TRUE))  
     
-    color <- switch(input$var, 
-                    "Heart & Stroke" = "darkviolet")
+    leaflet(HS.df) %>% addTiles() %>%
+      addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+                 radius = ~HS_county^1.5, 
+                 popup = ~paste(county,',',state,':',HS_county))
     
-    legend <- switch(input$var, 
-                     "Heart & Stroke" = "HS data")
-    
-    percent_map(data, color, legend, input$range[1], input$range[2])
   })
   
   # density plot q
