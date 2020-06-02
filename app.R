@@ -27,10 +27,10 @@ ui <- fluidPage(
                   choices = c('Heart & Stroke','Income'),
                   selected = 'Heart & Stroke'),
       
-      sliderInput("range", 
+      sliderInput('range', 
                   label = "Range of interest:",
-                  min =min(comb.df$Value,na.rm=TRUE), max =max(comb.df$Value,na.rm=TRUE), 
-                  value = c(0, 100))
+                  min =min(comb.df$HS_county,na.rm=TRUE), max=max(comb.df$HS_county,na.rm=TRUE), 
+                  value = c(min, max))
     ),
     
     mainPanel(
@@ -46,8 +46,27 @@ ui <- fluidPage(
 )
 
 # Server logic ----
-server <- function(input, output) {
-  
+server <- function(input, output, session) {
+  observe({
+      x <-input$var
+      tt <- switch (input$var,
+                    "Heart & Stroke" = updateSliderInput(session,'range',label = "Range of interest:",
+                                                         min=min(comb.df$HS_county,na.rm=TRUE),
+                                                         max=max(comb.df$HS_county,na.rm=TRUE)),value = c(min, max),
+                    
+                    'Income'=updateSliderInput(session,'range',label = "Range of interest:",
+                                               min=min(comb.df$Poverty,na.rm=TRUE),
+                                               max=max(comb.df$Poverty,na.rm=TRUE),value = c(min, max))
+      )
+    
+    
+    # print(x)
+    # if (x == 'Income'){
+    #   updateSliderInput(session,'range',min=min(comb.df$Poverty),max(comb.df$Poverty))
+    # } else {
+    #   updateSliderInput(session,'range',min=min(comb.df$HS_county),max(comb.df$HS_county))
+    # }
+  })
   
   output$map <- renderLeaflet({
     
@@ -58,7 +77,7 @@ server <- function(input, output) {
                                 popup = ~paste(county,',',state,':',HS_county)),
                    'Income'= leaflet(comb.df) %>% addTiles() %>%
                      addCircles(lng = ~Long, lat = ~Lat, weight = 2,
-                                radius = ~Poverty^3, 
+                                radius = ~Poverty^3, color = 'red',
                                 popup = ~paste(county,',',state,':',Poverty)))
    
   
@@ -81,7 +100,7 @@ server <- function(input, output) {
       scale_color_brewer(palette="Paired") + theme_classic()
     },height = 400,width = 600)
   
-}
+} # end of server
 
 # Run app ----
 shinyApp(ui, server)
