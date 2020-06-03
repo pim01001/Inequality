@@ -36,7 +36,7 @@ ui <- fluidPage(
     mainPanel(
       
       tabsetPanel(type = "tabs",
-                  tabPanel("Map",leafletOutput("map")),
+                  tabPanel("Map",leafletOutput("map",height = 550,width = 800)),
                   tabPanel("Density Plot", plotOutput("density")),
                   tabPanel("Table", tableOutput("table"))
         )
@@ -48,18 +48,19 @@ ui <- fluidPage(
 # Server logic ----
 server <- function(input, output, session) {
   observe({
-      x <-input$var
-      tt <- switch (input$var,
-                    "Heart & Stroke" = updateSliderInput(session,'range',label = "Range of interest:",
+      # updates the slider based on variable toggled like  HS & income
+    
+    tt <- switch (input$var,
+                    "Heart & Stroke" = updateSliderInput(session,'range',label = "Range of Heart & Stoke Rate:",
                                                          min=min(comb.df$HS_county,na.rm=TRUE),
                                                          max=max(comb.df$HS_county,na.rm=TRUE)),value = c(min, max),
                     
-                    'Income'=updateSliderInput(session,'range',label = "Range of interest:",
+                    'Income'=updateSliderInput(session,'range',label = "Range of % Poverty:",
                                                min=min(comb.df$Poverty,na.rm=TRUE),
                                                max=max(comb.df$Poverty,na.rm=TRUE),value = c(min, max))
       )
     
-    
+   
     # print(x)
     # if (x == 'Income'){
     #   updateSliderInput(session,'range',min=min(comb.df$Poverty),max(comb.df$Poverty))
@@ -69,13 +70,16 @@ server <- function(input, output, session) {
   })
   
   output$map <- renderLeaflet({
+  
     
     data.df <- switch(input$var, 
-                   "Heart & Stroke"=leaflet(comb.df) %>% addTiles() %>%
+                   "Heart & Stroke"=comb.df %>% filter(.,HS_county >= input$range[1] & HS_county <= input$range[2]) %>%
+                     leaflet()  %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
                      addCircles(lng = ~Long, lat = ~Lat, weight = 2,
                                 radius = ~HS_county^1.5, 
                                 popup = ~paste(county,',',state,':',HS_county)),
-                   'Income'= leaflet(comb.df) %>% addTiles() %>%
+                   'Income'= comb.df %>% filter(.,Poverty >= input$range[1] & Poverty <= input$range[2]) %>% 
+                     leaflet() %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
                      addCircles(lng = ~Long, lat = ~Lat, weight = 2,
                                 radius = ~Poverty^3, color = 'red',
                                 popup = ~paste(county,',',state,':',Poverty)))
@@ -87,7 +91,10 @@ server <- function(input, output, session) {
     #              radius = data.df^3, 
     #              popup = ~paste(county,',',state,':',HS_county))
     # 
-  })
+  
+    
+    
+    })
   
   # density plot q
  
