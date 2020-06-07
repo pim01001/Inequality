@@ -42,14 +42,26 @@ ui <- fluidPage(
                           )
                          
                          ),
-                tabPanel("Density Plot", plotOutput("density"))
+                tabPanel("Density Plot",
+                         sidebarLayout(
+                           sidebarPanel(
+                             checkboxInput("HS_rate", "Heart & Stroke", TRUE),
+                             checkboxInput("Pov_rate", "Poverty Rate", TRUE)
+                           ),
+                           mainPanel(
+                             fluidPage(plotOutput("density"))
+                           )
+                           
+                         )
+                  
 
-    )
+                )
     
   )
   
   
   )
+)
 
 # Server logic ----
 server <- function(input, output, session) {
@@ -86,7 +98,10 @@ server <- function(input, output, session) {
     
     
   })
-  
+  output$density <- renderPlot({ ggplot(comb.df,aes(HS_county,Poverty,color=region,shape=region))+ 
+      geom_point()+stat_ellipse(size=1.5)+
+      theme_classic()
+  })
 }
 
 # Run app ----
