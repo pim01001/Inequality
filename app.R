@@ -45,8 +45,15 @@ ui <- fluidPage(
                 tabPanel("Density Plot",
                          sidebarLayout(
                            sidebarPanel(
-                             checkboxInput("HS_rate", "Heart & Stroke", TRUE),
-                             checkboxInput("Pov_rate", "Poverty Rate", TRUE)
+                             selectInput("Xaxis", 
+                                         label = "X axis of Plot",
+                                         choices = c('Heart & Stroke','Income'),
+                                         selected = 'Heart & Stroke'),
+                             selectInput("Yaxis", 
+                                         label = "Y axis of Plot",
+                                         choices = c('Heart & Stroke','Income'),
+                                         selected = 'Income')
+                            
                            ),
                            mainPanel(
                              fluidPage(plotOutput("density"))
@@ -98,7 +105,18 @@ server <- function(input, output, session) {
     
     
   })
-  output$density <- renderPlot({ ggplot(comb.df,aes(HS_county,Poverty,color=region,shape=region))+ 
+  output$density <- renderPlot({ 
+    
+    switch(input$Xaxis,
+           'Heart & Stroke'= xx <- 'HS_county',
+           'Income'=xx <-'Poverty')
+           
+    switch(input$Yaxis,
+           'Heart & Stroke'= yy <- 'HS_county',
+           'Income'=yy <-'Poverty')    
+
+    
+    ggplot(comb.df,aes_string(x=xx,y=yy,color='region',shape='region'))+ 
       geom_point()+stat_ellipse(size=1.5)+
       theme_classic()
   })
