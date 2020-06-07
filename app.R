@@ -5,109 +5,89 @@ library(dplyr)
 library(ggplot2)
 
 # Load data ----
-comb.df <- read.csv('comb.csv',stringsAsFactors = FALSE)
+# Load data ----
+comb.df <- read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/comb.csv',stringsAsFactors = FALSE)
 
 comb.df <- comb.df %>% group_by(state,county) %>% 
   summarise(Long = median(longitude),Lat= median(latitude),
             HS_county = median(Value,na.rm=TRUE),
             Poverty = median(PCTPOVALL_2018))
-
+# add a columnfor re
+names(state.division)<-state.abb
+comb.df$region <- state.division[comb.df$state]
 
 # User interface ----
 ui <- fluidPage(
-  titlePanel("censusVis"),
-  
-  sidebarLayout(
-    sidebarPanel(
-      helpText("Create demographic maps with 
-        information from the 2010 US Census."),
-      
-      selectInput("var", 
-                  label = "Choose a variable to display",
-                  choices = c('Heart & Stroke','Income'),
-                  selected = 'Heart & Stroke'),
-      
-      sliderInput('range', 
-                  label = "Range of interest:",
-                  min =min(comb.df$HS_county,na.rm=TRUE), max=max(comb.df$HS_county,na.rm=TRUE), 
-                  value = c(min, max))
-    ),
+  mainPanel(
     
-    mainPanel(
-      
-      tabsetPanel(type = "tabs",
-                  tabPanel("Map",leafletOutput("map",height = 550,width = 800)),
-                  tabPanel("Density Plot", plotOutput("density")),
-                  tabPanel("Table", tableOutput("table"))
-        )
-      
-      )
+    tabsetPanel(type = "tabs",
+                tabPanel("Map",
+                            
+                         sidebarLayout(
+                           sidebarPanel(
+                             selectInput("var", 
+                                         label = "Choose a variable to display",
+                                         choices = c('Heart & Stroke','Income'),
+                                         selected = 'Heart & Stroke'),
+                             
+                             sliderInput('range', 
+                                         label = "Range of interest:",
+                                         min =min(comb.df$HS_county,na.rm=TRUE), max=max(comb.df$HS_county,na.rm=TRUE), 
+                                         value = c(min, max))
+                             
+                             ),
+                           mainPanel(
+                             fluidPage(leafletOutput("map",height = 700,width = 900))
+                           )
+                          )
+                         
+                         ),
+                tabPanel("Density Plot", plotOutput("density"))
+
+    )
+    
   )
-)
+  
+  
+  )
 
 # Server logic ----
 server <- function(input, output, session) {
   observe({
-      # updates the slider based on variable toggled like  HS & income
+    # updates the slider based on variable toggled like  HS & income
     
     tt <- switch (input$var,
-                    "Heart & Stroke" = updateSliderInput(session,'range',label = "Range of Heart & Stoke Rate:",
-                                                         min=min(comb.df$HS_county,na.rm=TRUE),
-                                                         max=max(comb.df$HS_county,na.rm=TRUE)),value = c(min, max),
-                    
-                    'Income'=updateSliderInput(session,'range',label = "Range of % Poverty:",
-                                               min=min(comb.df$Poverty,na.rm=TRUE),
-                                               max=max(comb.df$Poverty,na.rm=TRUE),value = c(min, max))
-      )
+                  "Heart & Stroke" = updateSliderInput(session,'range',label = "Range of Heart & Stoke Rate:",
+                                                       min=min(comb.df$HS_county,na.rm=TRUE),
+                                                       max=max(comb.df$HS_county,na.rm=TRUE)),value = c(min, max),
+                  
+                  'Income'=updateSliderInput(session,'range',label = "Range of % Poverty:",
+                                             min=min(comb.df$Poverty,na.rm=TRUE),
+                                             max=max(comb.df$Poverty,na.rm=TRUE),value = c(min, max))
+    )
     
-   
-    # print(x)
-    # if (x == 'Income'){
-    #   updateSliderInput(session,'range',min=min(comb.df$Poverty),max(comb.df$Poverty))
-    # } else {
-    #   updateSliderInput(session,'range',min=min(comb.df$HS_county),max(comb.df$HS_county))
-    # }
   })
   
   output$map <- renderLeaflet({
-  
+    
     
     data.df <- switch(input$var, 
-                   "Heart & Stroke"=comb.df %>% filter(.,HS_county >= input$range[1] & HS_county <= input$range[2]) %>%
-                     leaflet()  %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
-                     addCircles(lng = ~Long, lat = ~Lat, weight = 2,
-                                radius = ~HS_county^1.5, 
-                                popup = ~paste(county,',',state,':',HS_county)),
-                   'Income'= comb.df %>% filter(.,Poverty >= input$range[1] & Poverty <= input$range[2]) %>% 
-                     leaflet() %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
-                     addCircles(lng = ~Long, lat = ~Lat, weight = 2,
-                                radius = ~Poverty^3, color = 'red',
-                                popup = ~paste(county,',',state,':',Poverty)))
-   
-  
-    
-    # leaflet(comb.df) %>% addTiles() %>%
-    #   addCircles(lng = ~Long, lat = ~Lat, weight = 2,
-    #              radius = data.df^3, 
-    #              popup = ~paste(county,',',state,':',HS_county))
-    # 
-  
+                      "Heart & Stroke"=comb.df %>% dplyr::filter(.,HS_county >= input$range[1] & HS_county <= input$range[2]) %>%
+                        leaflet()  %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
+                        addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+                                   radius = ~HS_county^1.5, 
+                                   popup = ~paste(county,',',state,':',HS_county)),
+                      'Income'= comb.df %>% dplyr::filter(.,Poverty >= input$range[1] & Poverty <= input$range[2]) %>% 
+                        leaflet() %>% addTiles() %>% setView(-96.98,38.615, zoom = 4.2)%>%
+                        addCircles(lng = ~Long, lat = ~Lat, weight = 2,
+                                   radius = ~Poverty^3, color = 'red',
+                                   popup = ~paste(county,',',state,':',Poverty)))
     
     
-    })
-  
-  # density plot q
- 
-  
-  output$density <- renderPlot({ 
     
-    ggplot(counties,aes(Value,fill=TRUE))+
-      geom_vline(xintercept = mean(counties$Value,na.rm = TRUE),linetype='dashed',color='blue',size=2) +
-      geom_density(size=1,alpha=0.1)+
-      scale_color_brewer(palette="Paired") + theme_classic()
-    },height = 400,width = 600)
+  })
   
-} # end of server
+}
 
 # Run app ----
 shinyApp(ui, server)
