@@ -26,6 +26,10 @@ geo.df<-geo.df[geo.df$county %in% c('')==FALSE,]
 geo.df <- geo.df %>% filter(., state!='PR')
 # filters out the work Parish for merging with HS.df
 geo.df$county<-gsub(' Parish','',geo.df$county)
+# getting rid of Borough from Alaska
+geo.df$county<-gsub(' Borough','',geo.df$county)
+geo.df$county<-gsub('Municipality of ','',geo.df$county)
+geo.df$county<-gsub(' Census Area','',geo.df$county)
 
 
 geo.df<-select(geo.df,'state','county','primary_city',
@@ -40,11 +44,13 @@ HS.df<-read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/nteractive Atlas
 
 HS.df<-HS.df %>% rename(.,county=County,state=State)
 
+
+
 HS.df<-left_join(geo.df,HS.df,by=c('state','county'))
 
 #HS.df$name <-state_count(HS.df$State,HS.df$County)
 
-write.csv(HS.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/HS.csv')
+#write.csv(HS.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/HS.csv')
 
 #----------------------------------------------------
 
@@ -63,7 +69,13 @@ income.df$Area_name<-gsub(' County','',income.df$Area_name)
 
 income.df<-income.df %>% rename(.,county=Area_name,state=Stabr)
 income.df$POVALL_2018[is.na(income.df$POVALL_2018)] <- 0
+# getting rid of Borough from Alaska
+income.df$county<-gsub(' Borough','',income.df$county)
+income.df$county<-gsub(' Municipality','',income.df$county)
+income.df$county<-gsub(' Census Area','',income.df$county)
+income.df$county<-gsub(' Parish','',income.df$county)
 final.df <-left_join(HS.df,income.df,by=c('state','county'))
+
 
 write.csv(final.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/comb.csv')
 
