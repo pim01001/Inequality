@@ -74,7 +74,22 @@ income.df$county<-gsub(' Borough','',income.df$county)
 income.df$county<-gsub(' Municipality','',income.df$county)
 income.df$county<-gsub(' Census Area','',income.df$county)
 income.df$county<-gsub(' Parish','',income.df$county)
+
+#------------------Education Data--------------------------
+
+edu.df<-read.csv('/home/pim01001/Documents/Bootcamp/R/shiny_proj/Education.csv',header = TRUE,
+                 stringsAsFactors = FALSE)
+edu.df$county<-gsub(' Borough','',edu.df$county)
+edu.df$county<-gsub(' Municipality','',edu.df$county)
+edu.df$county<-gsub(' Census Area','',edu.df$county)
+edu.df$county<-gsub(' Parish','',edu.df$county)
+edu.df$county<-gsub(' County','',edu.df$county)
+colnames(edu.df)[1]<-c('state')
+#---------------------------------------------------------------------
+
+
 final.df <-left_join(HS.df,income.df,by=c('state','county'))
+final.df <-left_join(final.df,edu.df,by=c('state','county'))
 
 
 write.csv(final.df,'/home/pim01001/Documents/Bootcamp/R/shiny_proj/comb.csv')

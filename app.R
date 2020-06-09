@@ -13,7 +13,7 @@ comb.df <- comb.df %>% group_by(state,county) %>%
   summarise(Long = median(longitude),Lat= median(latitude),
             HS_county = median(Value,na.rm=TRUE),
             Poverty = median(PCTPOVALL_2018),
-            pop = sum(estimated_population,na.rm = TRUE))
+            edu = median(Percent._bachelor,na.rm = TRUE))
 # add a columnfor re
 names(state.division)<-state.abb
 comb.df$region <- state.division[comb.df$state]
